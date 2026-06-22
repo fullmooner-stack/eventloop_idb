@@ -1,0 +1,35 @@
+{
+  "name": "eventloop_idb",
+  "version": "1.0.0",
+  "description": "Event Looped IndexedDB wrapper",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fullmooner-stack/el_idb.git"
+  },
+  "keywords": [
+    "idb",
+    "IndexedDB",
+    "PWA",
+    "browser"
+  ],
+  "author": "Yousif EL-Badri",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fullmooner-stack/el_idb/issues"
+  },
+  "homepage": "https://github.com/fullmooner-stack/el_idb#readme",
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+  }
+}
