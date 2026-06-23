@@ -22,7 +22,7 @@ Compare against other IndexedDB wrappers at [idbwrappersbenchmark.vercel.app](ht
 
 ## Usage
 
-### Instansiation
+### Instantiation
 
 ```javascript
 import { EventLoop_idb } from 'eventloop_idb';
@@ -33,56 +33,56 @@ const db = new EventLoop_idb('my_store');
 
 ```javascript
 const item = { id: "123_string", name: "john doe", age: 31 }
-db.write(item.id, () => item, (success: boolean) => { if (success) console.log('saved'); });
+db.write(item.id, () => item, (success) => { if (success) console.log('saved'); });
 ```
 
 ### Read
 
 ```javascript
-db.read("123_string", (item: any) => console.log(item)); // { id: "123_string", name: "john doe", age: 31 }
+db.read("123_string", (item) => console.log(item)); // { id: "123_string", name: "john doe", age: 31 }
 ```
 
 ### Delete
 
 ```javascript
-db.delete("123_string", (success: boolean) => success && console.log("successfully deleted item 123_string"));
+db.delete("123_string", (success) => success && console.log("successfully deleted item 123_string"));
 ```
 
 ### Read all keys
 
 ```javascript
-db.getAllKeys((allKeys: string[]) => console.log(allKeys)); // reads all keys
-db.getAllKeys((allKeys: string[]) => console.log(allKeys), null, 10); // reads the first 10 keys
-const idbKeyRange = [10, 100]
-db.getAllKeys((allKeys: string[]) => console.log(allKeys), idbKeyRange); // reads all keys withing an idb key range 
-```
-
-
-### Read all keys
-
-```javascript
-db.getAll((allItems: any[]) => console.log(allItems)); // reads all items
-db.getAll((allItems: any[]) => console.log(allItems), null, 10); // reads the first 10 items
+db.getAllKeys((allKeys) => console.log(allKeys)); // reads all keys
+db.getAllKeys((allKeys) => console.log(allKeys), null, 10); // reads the first 10 keys
 const idbKeyRange = [10, 100];
-db.getAllKeys((allItems: any[]) => console.log(allItems), idbKeyRange); // reads all items withing an idb key range 
+db.getAllKeys((allKeys) => console.log(allKeys), idbKeyRange); // reads all keys within an idb key range
 ```
 
-### Clear all items form database
+### Read all items
 
 ```javascript
-db.clear((success: boolean) => success && console.log(`${db.name} was successfully cleared`));
+db.getAll((allItems) => console.log(allItems)); // reads all items
+db.getAll((allItems) => console.log(allItems), null, 10); // reads the first 10 items
+const idbKeyRange = [10, 100];
+db.getAll((allItems) => console.log(allItems), idbKeyRange); // reads all items within an idb key range
 ```
+
+### Clear all items from database
+
+```javascript
+db.clear((success) => success && console.log(`${db.name} was successfully cleared`));
+```
+
+---
 
 ## Reactive State
 
 `EventLoop_idb` exposes raw `Set`-based callback collections. Sets do not self-execute on subscription, so always sync the current value before subscribing.
 
-
 ### Subscribe to connection state
 
 ```javascript
 let connectionState = false;
-const trackConnection = (connected) => (connectionState = connnected);
+const trackConnection = (connected) => (connectionState = connected);
 connectionState = db.readyFlag;
 db.onReadyStateChangeClbs.add(trackConnection);
 ```
@@ -94,9 +94,8 @@ db.onReadyStateChangeClbs.delete(trackConnection); // unsubscribe single subscri
 db.onReadyStateChangeClbs.clear(); // unsubscribe all subscribers
 ```
 
-
 ### Subscribe to on-idle
-fires when all pending operations are done and the instance goes idle
+Fires when all pending operations are exhausted and the instance goes idle.
 
 ```javascript
 const isIdle = () => console.log(db.name, "is idling");
@@ -110,6 +109,8 @@ db.onIdleClbs.delete(isIdle); // unsubscribe single subscriber
 db.onIdleClbs.clear(); // unsubscribe all subscribers
 ```
 
+---
+
 ## Examples
 
 ### React
@@ -119,7 +120,6 @@ import { useState, useEffect } from 'react';
 import { EventLoop_idb } from 'eventloop_idb';
 
 const db = new EventLoop_idb('my-store');
-
 
 export function App() {
   const [ready, setReady] = useState(db.readyFlag);
@@ -132,20 +132,18 @@ export function App() {
     return () => db.onReadyStateChangeClbs.delete(onState);
   }, []);
 
-  const handleWrite (e) => {
-    const item = e.target.value;
-    db.write(e.id, ()=> e.id, (success) => {
+  const handleWrite = (item) => {
+    db.write(item.id, () => item, (success) => {
       if (success) toast("success");
-      else toast("fail")
+      else toast("fail");
     });
-
-  }
+  };
 
   return (
     <div>
       <p>{ready ? '🟢 Connected' : '⚪ Connecting...'}</p>
       {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
-      <button onClick={handleWrite}>save</button>
+      <button onClick={() => handleWrite({ id: "1", name: "john" })}>save</button>
     </div>
   );
 }
@@ -154,7 +152,7 @@ export function App() {
 ### SolidJS
 
 ```javascript
-import { createSignal, onMount, onCleanup } from 'solid-js';
+import { createSignal, onCleanup } from 'solid-js';
 import { EventLoop_idb } from 'eventloop_idb';
 
 const db = new EventLoop_idb('my-store');
@@ -165,7 +163,7 @@ export function App() {
 
   setReady(db.readyFlag);
   db.onReadyStateChangeClbs.add(setReady);
-  
+
   onCleanup(() => db.onReadyStateChangeClbs.delete(setReady));
 
   return <p>{ready() ? '🟢 Connected' : '⚪ Connecting...'} — {items().length} records</p>;
@@ -186,12 +184,12 @@ new EventLoop_idb(name: string)
 
 | Property | Type | Description |
 |---|---|---|
-| `onReadyStateChangeClbs` | `Set<(readyFlag: boolean) => void>` | Fires when all pending operations are done and the instance goes idle |
-| `onIdleClbs` | `Set<() => void>` | Fires when the transaction batch goes idle |
-| `name` | `string` | The name of DB |
+| `name` | `string` | The name of the DB |
 | `db` | `IDBDatabase` | Direct access to the raw native IDB instance |
 | `readyFlag` | `boolean` | `true` when open and ready |
-| `readyState` | `string` | detailed connection state `'done'` · `'blocked'` · `'closed'` · `'unexpectedly closed'` · `'close'` nothing documented yet. |
+| `readyState` | `string` | Detailed connection state: `'done'` · `'blocked'` · `'closed'` · `'unexpectedly closed'` · `'close'` |
+| `onReadyStateChangeClbs` | `Set<(readyFlag: boolean) => void>` | Fires on every connection state transition |
+| `onIdleClbs` | `Set<() => void>` | Fires when all pending operations are exhausted and the instance goes idle |
 
 ### Methods
 
@@ -200,22 +198,22 @@ Read.
 read(id: string, clb: (res: any) => void): void
 ```
 
-Read all keys, or only matching key if either or both "range" or "count" was provided (skip "range" with "null").
+Read all keys, or only matching keys if either or both `range` or `count` are provided (skip `range` with `null`).
 ```typescript
 getAllKeys(clb: (keys: string[]) => void, range?: IDBKeyRange, count?: number): void
 ```
 
-Read all items, or only matching key if either or both "range" or "count" was provided (skip "range" with "null").
+Read all items, or only matching items if either or both `range` or `count` are provided (skip `range` with `null`).
 ```typescript
 getAll(clb: (items: any[]) => void, range?: IDBKeyRange, count?: number): void
 ```
 
-Write (writes takes an accessor "() => item" and not direct value.
+Write (takes an accessor `() => item`, not a direct value).
 ```typescript
 write(id: string, data: (id: string) => any, clb?: (ok: boolean) => void): void
 ```
 
-Deletion.
+Delete a single record.
 ```typescript
 delete(id: string, clb?: (ok: boolean) => void): void
 ```
@@ -224,8 +222,6 @@ Delete all records.
 ```typescript
 clear(clb?: (ok: boolean) => void): void
 ```
-
-
 
 ---
 
