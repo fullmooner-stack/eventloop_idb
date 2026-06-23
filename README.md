@@ -115,12 +115,11 @@ export function App() {
 `EventLoop_idb` exposes raw `Set`-based callback collections. Sets do not self-execute on subscription, so always sync the current value before subscribing.
 
 ```javascript
+const track = (v) => (isConnected = v);
+
 // Sync current state first
 let isConnected = db.readyFlag;
-
-// Then subscribe to future changes
-const track = (v) => (isConnected = v);
-db.onReadyStateChangeClbs.add(track);
+db.onReadyStateChangeClbs.add(track); // Then subscribe to future changes
 
 // Unsubscribe
 db.onReadyStateChangeClbs.delete(track);
