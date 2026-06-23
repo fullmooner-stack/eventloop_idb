@@ -21,38 +21,95 @@ Compare against other IndexedDB wrappers at [idbwrappersbenchmark.vercel.app](ht
 
 ## Usage
 
-### Vanilla
+### Instansiation
 
 ```javascript
 import { EventLoop_idb } from 'eventloop_idb';
-
-const db = new EventLoop_idb('my-store');
-
-db.write('theme', () => ({ mode: 'dark', accent: '#00ffcc' }), (ok) => {
-  if (ok) console.log('saved');
-});
-
-db.read('theme', (data) => {
-  console.log(data);
-});
+const db = new EventLoop_idb('my_store');
 ```
 
-### TypeScript
+### Write
 
-```typescript
-import { EventLoop_idb } from 'eventloop_idb';
-
-interface AppConfig {
-  mode: 'dark' | 'light';
-  accent: string;
-}
-
-const db = new EventLoop_idb('my-store');
-
-db.read('theme', (data: AppConfig | undefined) => {
-  if (data) console.log(data.mode);
-});
+```javascript
+const item = { id: "123_string", name: "john doe", age: 31 }
+db.write(item.id, () => item, (success: boolean) => { if (success) console.log('saved'); });
 ```
+
+### Read
+
+```javascript
+db.read("123_string", (item: any) => console.log(item)); // { id: "123_string", name: "john doe", age: 31 }
+```
+
+### Delete
+
+```javascript
+db.delete("123_string", (success: boolean) => success && console.log("successfully deleted item 123_string"));
+```
+
+### Read all keys
+
+```javascript
+db.getAllKeys((allKeys: string[]) => console.log(allKeys)); // reads all keys
+db.getAllKeys((allKeys: string[]) => console.log(allKeys), null, 10); // reads the first 10 keys
+const idbKeyRange = [10, 100]
+db.getAllKeys((allKeys: string[]) => console.log(allKeys), idbKeyRange); // reads all keys withing an idb key range 
+```
+
+
+### Read all keys
+
+```javascript
+db.getAll((allItems: any[]) => console.log(allItems)); // reads all items
+db.getAll((allItems: any[]) => console.log(allItems), null, 10); // reads the first 10 items
+const idbKeyRange = [10, 100];
+db.getAllKeys((allItems: any[]) => console.log(allItems), idbKeyRange); // reads all items withing an idb key range 
+```
+
+### Clear all items form database
+
+```javascript
+db.clear((success: boolean) => success && console.log(`${db.name} was successfully cleared`));
+```
+
+## Reactive State
+
+`EventLoop_idb` exposes raw `Set`-based callback collections. Sets do not self-execute on subscription, so always sync the current value before subscribing.
+
+
+### Subscribe to connection state
+
+```javascript
+let connectionState = false;
+const trackConnection = (connected) => (connectionState = connnected);
+connectionState = db.readyFlag;
+db.onReadyStateChangeClbs.add(trackConnection);
+```
+
+### Unsubscribe from connection state
+
+```javascript
+db.onReadyStateChangeClbs.delete(trackConnection); // unsubscribe single subscriber
+db.onReadyStateChangeClbs.clear(); // unsubscribe all subscribers
+```
+
+
+### Subscribe to on-idle
+fires when all pending operations are done and the instance goes idle
+
+```javascript
+const isIdle = () => console.log(db.name, "is idling");
+db.onIdleClbs.add(isIdle);
+```
+
+### Unsubscribe from on-idle
+
+```javascript
+db.onIdleClbs.delete(isIdle); // unsubscribe single subscriber
+db.onIdleClbs.clear(); // unsubscribe all subscribers
+```
+
+## Examples
 
 ### React
 
@@ -62,24 +119,32 @@ import { EventLoop_idb } from 'eventloop_idb';
 
 const db = new EventLoop_idb('my-store');
 
+
 export function App() {
   const [ready, setReady] = useState(db.readyFlag);
   const [data, setData] = useState(null);
 
   useEffect(() => {
     setReady(db.readyFlag);
-
     const onState = (r) => setReady(r);
     db.onReadyStateChangeClbs.add(onState);
-    db.read('profile', setData);
-
     return () => db.onReadyStateChangeClbs.delete(onState);
   }, []);
+
+  const handleWrite (e) => {
+    const item = e.target.value;
+    db.write(e.id, ()=> e.id, (success) => {
+      if (success) toast("success");
+      else toast("fail")
+    });
+
+  }
 
   return (
     <div>
       <p>{ready ? '🟢 Connected' : '⚪ Connecting...'}</p>
       {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+      <button onClick={handleWrite}>save</button>
     </div>
   );
 }
@@ -97,43 +162,13 @@ export function App() {
   const [ready, setReady] = createSignal(db.readyFlag);
   const [items, setItems] = createSignal([]);
 
-  onMount(() => {
-    setReady(db.readyFlag);
-    db.onReadyStateChangeClbs.add(setReady);
-    db.getAll(setItems);
-    onCleanup(() => db.onReadyStateChangeClbs.delete(setReady));
-  });
+  setReady(db.readyFlag);
+  db.onReadyStateChangeClbs.add(setReady);
+  
+  onCleanup(() => db.onReadyStateChangeClbs.delete(setReady));
 
   return <p>{ready() ? '🟢 Connected' : '⚪ Connecting...'} — {items().length} records</p>;
 }
-```
-
----
-
-## Reactive State
-
-`EventLoop_idb` exposes raw `Set`-based callback collections. Sets do not self-execute on subscription, so always sync the current value before subscribing.
-
-```javascript
-const track = (v) => (isConnected = v);
-
-// Sync current state first
-let isConnected = db.readyFlag;
-db.onReadyStateChangeClbs.add(track); // Then subscribe to future changes
-
-// Unsubscribe
-db.onReadyStateChangeClbs.delete(track);
-
-// Or clear all listeners at once
-db.onReadyStateChangeClbs.clear();
-```
-
-Subscribe to queue idle cycles (fires after each transaction batch completes):
-
-```javascript
-const onIdle = () => console.log('batch done');
-db.onIdleClbs.add(onIdle);
-db.onIdleClbs.delete(onIdle);
 ```
 
 ---
@@ -150,44 +185,46 @@ new EventLoop_idb(name: string)
 
 | Property | Type | Description |
 |---|---|---|
-| `name` | `string` | The namespace identifier of the store |
+| `onReadyStateChangeClbs` | `Set<(readyFlag: boolean) => void>` | Fires when all pending operations are done and the instance goes idle |
+| `onIdleClbs` | `Set<() => void>` | Fires when the transaction batch goes idle |
+| `name` | `string` | The name of DB |
 | `db` | `IDBDatabase` | Direct access to the raw native IDB instance |
 | `readyFlag` | `boolean` | `true` when open and ready |
-| `readyState` | `string` | `'done'` · `'blocked'` · `'closed'` · `'unexpectedly closed'` · `'close'` |
-| `onReadyStateChangeClbs` | `Set<(v: boolean) => void>` | Fires on every connection state change |
-| `onIdleClbs` | `Set<() => void>` | Fires when the transaction batch goes idle |
+| `readyState` | `string` | detailed connection state `'done'` · `'blocked'` · `'closed'` · `'unexpectedly closed'` · `'close'` nothing documented yet. |
 
 ### Methods
 
+Read.
 ```typescript
 read(id: string, clb: (res: any) => void): void
 ```
-Enqueues a read.
 
-```typescript
-write(id: string, data: (id: string) => any, clb?: (ok: boolean) => void): void
-```
-Enqueues a write. Receives a data builder callback.
-
-```typescript
-delete(id: string, clb?: (ok: boolean) => void): void
-```
-Enqueues a deletion.
-
-```typescript
-clear(clb?: (ok: boolean) => void): void
-```
-Flushes all records from the store.
-
+Read all keys, or only matching key if either or both "range" or "count" was provided (skip "range" with "null").
 ```typescript
 getAllKeys(clb: (keys: string[]) => void, range?: IDBKeyRange, count?: number): void
 ```
-Collects all matching keys.
 
+Read all items, or only matching key if either or both "range" or "count" was provided (skip "range" with "null").
 ```typescript
 getAll(clb: (items: any[]) => void, range?: IDBKeyRange, count?: number): void
 ```
-Fetches all matching records.
+
+Write (writes takes an accessor "() => item" and not direct value.
+```typescript
+write(id: string, data: (id: string) => any, clb?: (ok: boolean) => void): void
+```
+
+Deletion.
+```typescript
+delete(id: string, clb?: (ok: boolean) => void): void
+```
+
+Delete all records.
+```typescript
+clear(clb?: (ok: boolean) => void): void
+```
+
+
 
 ---
 
