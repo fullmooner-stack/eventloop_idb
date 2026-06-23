@@ -10,7 +10,7 @@ A fast, simple, single file, zero-dependency wrapper driven by an asynchronous m
 ```bash
 npm i eventloop_idb
 ```
-or copy/paste the single file at [src/index.ts]([https://idbwrappersbenchmark.vercel.app/](https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts))
+or copy/paste the single file at [src/index.ts](https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts)
 
 https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts
 ## Performance
