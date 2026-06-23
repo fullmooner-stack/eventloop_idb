@@ -12,7 +12,6 @@ npm i eventloop_idb
 ```
 or copy/paste the single file at [src/index.ts](https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts)
 
-https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts
 ## Performance
 
 <img width="1572" height="703" alt="Benchmark" src="https://github.com/user-attachments/assets/a8609e08-be2d-4246-bf31-cc2b644dee1f" />
