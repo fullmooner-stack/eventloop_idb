@@ -2,7 +2,7 @@
 
 > The Fastest IndexedDB wrapper out there.
 
-A fast, simple, zero-dependency single-file wrapper driven by an asynchronous micro-task event loop. Groups reads, writes, and deletes into controlled transactional batches — eliminating write-amplification, context switching, and transaction thrashing.
+A fast, simple, single file, zero-dependency wrapper driven by an asynchronous micro-task event loop. Groups reads, writes, and deletes into controlled transactional batches — eliminating write-amplification, context switching, and transaction thrashing.
 
 [![npm version](https://img.shields.io/npm/v/eventloop_idb.svg?style=flat-square)](https://www.npmjs.com/package/eventloop_idb)
 [![license](https://img.shields.io/npm/l/eventloop_idb.svg?style=flat-square)](LICENSE)
@@ -10,7 +10,9 @@ A fast, simple, zero-dependency single-file wrapper driven by an asynchronous mi
 ```bash
 npm i eventloop_idb
 ```
+or copy/paste the single file at [src/index.ts]([https://idbwrappersbenchmark.vercel.app/](https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts))
 
+https://github.com/fullmooner-stack/eventloop_idb/blob/main/src/index.ts
 ## Performance
 
 <img width="1572" height="703" alt="Benchmark" src="https://github.com/user-attachments/assets/a8609e08-be2d-4246-bf31-cc2b644dee1f" />
