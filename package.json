@@ -1,6 +1,6 @@
 {
   "name": "eventloop_idb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Event Looped IndexedDB wrapper",
   "repository": {
     "type": "git",
