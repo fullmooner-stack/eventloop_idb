@@ -4,7 +4,7 @@
   "description": "Event Looped IndexedDB wrapper",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fullmooner-stack/el_idb.git"
+    "url": "git+https://github.com/fullmooner-stack/eventloop_idb.git"
   },
   "keywords": [
     "idb",
@@ -15,9 +15,9 @@
   "author": "Yousif EL-Badri",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fullmooner-stack/el_idb/issues"
+    "url": "https://github.com/fullmooner-stack/eventloop_idb/issues"
   },
-  "homepage": "https://github.com/fullmooner-stack/el_idb#readme",
+  "homepage": "https://github.com/fullmooner-stack/eventloop_idb#readme",
   "devDependencies": {
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"
